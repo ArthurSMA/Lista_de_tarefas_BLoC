@@ -1,58 +1,51 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_bloc/data/task_dao.dart';
 import 'package:todo_bloc/materials/task.dart';
 
 import 'task_event.dart';
 import 'task_state.dart';
 
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
-  // Estado Inicial: Instancia o TaskState com uma lista de tarefas vazia
-  TaskBloc(): super(const TaskState(tasks: [])) {
+  final TaskDao _taskDao = TaskDao();
 
-    on<AddTaskEvent>((event, emit) {
-      if (event.title.trim().isEmpty)  return;
+  TaskBloc() : super(TaskState(tasks: [])) {
+    // Carregar tarefas do banco de dados ao iniciar
+    on<LoadTaskEvent>((event, emit) async {
+      final tasks = await _taskDao.findAll();
+      emit(TaskState(tasks: tasks));
+    });
 
-      // Cria a nova tarefa com status inicial padrão (pending)
+    // Adicionar tarefa no SQLite
+    on <AddTaskEvent>((event, emit) async {
       final newTask = Task(
-        title: event.title.trim(),
-        status: TaskStatus.pending,
+        title: event.title, 
+        status: TaskStatus.pending
       );
-
-      // Instancia uma nova lista a partir da lista atual e adiciona a nova tarefa
-      final updateList = List<Task>.from(state.tasks)..add(newTask);
-
-      // Emite um novo estado com a lista atualizada
-      emit(state.copyWith(tasks: updateList));
+      await _taskDao.save(newTask);
+      final updateTask = await _taskDao.findAll();
+      emit(TaskState(tasks: updateTask));
     });
 
-    on<RemoveTaskEvent>((event, emit) {
-      // Clona a lista atual
-      final updateList = List<Task>.from(state.tasks);
-
-      // Garante que o índice recebido seja válido antes de remover
-      if (event.index >= 0 && event.index < updateList.length) {
-        updateList.removeAt(event.index);
-
-        // Emite o novo estado com o item removido
-        emit(state.copyWith(tasks: updateList));
-      }
+    // Atualiza o estado da tarefa no SQLite
+    on <UpdateTaskStatusEvent>((event, emit) async {
+      final task = state.tasks[event.index];
+      final updateTask = Task(
+        id: task.id,
+        title: task.title,
+        status: task.status,
+      );
+      await _taskDao.save(updateTask);
+      final updatedTask = await _taskDao.findAll();
+      emit(TaskState(tasks: updatedTask));
     });
 
-    on<UpdateTaskStatusEvent>((event, emit) {
-      final updateList = List<Task>.from(state.tasks);
-
-      if (event.index >= 0 && event.index < updateList.length) {
-        // Obtém a tarefa atual do índice
-        final currentTask = updateList[event.index];
-
-        // Atualiza o item no índice com uma nova instância contendo o novo status
-        updateList[event.index] = Task(
-          title: currentTask.title,
-          status: event.newStatus
-        );
-
-        // Emite a nova lista atualizada
-        emit(state.copyWith(tasks: updateList));
+    on<RemoveTaskEvent>((event, emit) async {
+      final task = state.tasks[event.index];
+      if (task.id != null) {
+        await _taskDao.deleteById(task.id!); // ! operador de asserção não-nula
       }
+      final updatedTask = await _taskDao.findAll();
+      emit(TaskState(tasks: updatedTask));
     });
   }
 }

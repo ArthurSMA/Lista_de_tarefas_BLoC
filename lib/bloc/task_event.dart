@@ -7,6 +7,12 @@ abstract class TaskEvent {
   const TaskEvent();
 }
 
+// Solicita o carregamento inicial de todas as tarefas salvas no SQLite.
+// Não precisa de nenhum parâmetro, pois a busca traŕa todos os registros.
+class LoadTaskEvent extends TaskEvent {
+   const LoadTaskEvent();
+}
+
 // Solicita a adição de uma nova tarefa.
 // Carrega como payload o título informado na UI.
 class AddTaskEvent extends TaskEvent {

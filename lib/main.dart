@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_bloc/bloc/task_bloc.dart';
+import 'package:todo_bloc/bloc/task_event.dart';
 import 'package:todo_bloc/pages/task_page.dart';
 
 void main() {
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       ),
       // Instancia e provê o TaskBloc para toda a árvore abaixo da TaskPage
       home: BlocProvider(
-        create: (context) => TaskBloc(),
+        create: (context) => TaskBloc()..add(const LoadTaskEvent()), // <--- Dispara a busca ao iniciar
         child: const TaskPage(),
       ),
     );
