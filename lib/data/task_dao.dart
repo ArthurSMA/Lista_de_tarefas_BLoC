@@ -22,7 +22,7 @@ class TaskDao {
   /// Retorna um [Future<int>] contendo o ID inserido ou a quantidade de linhas alteradas.
   Future<int> save(Task tarefa) async {
     print('Iniciando o save:');
-    final Database bancoDeDados = await getDatabase();
+    final Database bancoDeDados = await DatabaseHelper.database;
     final Map<String, dynamic> taskMap = toMap(tarefa);
 
     if (tarefa.id == null) {
@@ -60,7 +60,7 @@ class TaskDao {
   /// Busca todas as tarefas gravadas no banco de dados.
   Future<List<Task>> findAll() async {
     print('Acessando o findAll...');
-    final Database bancoDeDados = await getDatabase();
+    final Database bancoDeDados = await DatabaseHelper.database;
     final List<Map<String, dynamic>> result = await bancoDeDados.query(_tablename);
     print('Procurando dados no banco... encontrado: $result');
     return toList(result);
@@ -94,7 +94,7 @@ class TaskDao {
   /// Busca tarefas pelo nome/título.
   Future<List<Task>> find(String nomeTarefa) async {
     print('Procurando tarefas com o nome: $nomeTarefa');
-    final Database bancoDeDados = await getDatabase();
+    final Database bancoDeDados = await DatabaseHelper.database;
 
     final List<Map<String, dynamic>> result = await bancoDeDados.query(
       _tablename,
@@ -110,7 +110,7 @@ class TaskDao {
   /// Deleta a tarefa pelo seu ID (Chave Primária).
   Future<int> deleteById(int id) async {
     print('Deletando a tarefa com ID: $id');
-    final Database bancoDeDados = await getDatabase();
+    final Database bancoDeDados = await DatabaseHelper.database;
 
     return await bancoDeDados.delete(
       _tablename,
@@ -122,7 +122,7 @@ class TaskDao {
   /// Deleta a tarefa pelo seu nome/título.
   Future<int> deleteByName(String nomeTarefa) async {
     print('Deletando tarefa: $nomeTarefa');
-    final Database bancoDeDados = await getDatabase();
+    final Database bancoDeDados = await DatabaseHelper.database;
 
     return await bancoDeDados.delete(
       _tablename,
